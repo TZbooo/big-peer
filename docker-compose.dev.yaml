@@ -11,7 +11,7 @@ services:
     command: uvicorn app.main:app --reload --host 0.0.0.0
     volumes:
       - ./:/code
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ./proxy:/etc/squid/
     ports:
       - 8000:8000
     env_file:
@@ -19,12 +19,10 @@ services:
     depends_on:
       - db
 
-  squid:
-    image: sameersbn/squid
-    container_name: 'squid'
+  proxy:
+    image: ubuntu/squid:5.2-22.04_beta
     volumes:
-      - /var/log:/var/log/squid3
-      - ./squid/:/etc/squid/
+      - ./proxy:/etc/squid/
     ports:
-      - 3128:3128
+      - "8080:3128"
     restart: always
