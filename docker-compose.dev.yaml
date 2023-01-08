@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:12-alpine
+    env_file:
+      - .env.dev
+
+  web:
+    build: .
+    command: uvicorn app.main:app --reload --host 0.0.0.0
+    volumes:
+      - ./:/code
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 8000:8000
+    env_file:
+      - .env.dev
+    depends_on:
+      - db
+
+  squid:
+    image: sameersbn/squid
+    container_name: 'squid'
+    volumes:
+      - /var/log:/var/log/squid3
+      - ./squid/:/etc/squid/
+    ports:
+      - 3128:3128
+    restart: always
