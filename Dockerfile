@@ -5,7 +5,7 @@ ENV PYTHONUNBUFFERED 1
 COPY ./requirements.txt /requirements.txt
 
 RUN apt update \
-    && apt install -y postgresql-client apache2-utils \
+    && apt install -y apache2-utils \
     && pip install -r /requirements.txt
 
 WORKDIR /code
