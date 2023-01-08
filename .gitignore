@@ -6,7 +6,7 @@ __pycache__/
 # C extensions
 *.so
 
-squid/
+squid/passwords
 
 # Distribution / packaging
 .Python
