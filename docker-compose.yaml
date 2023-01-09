@@ -1,0 +1,73 @@
+version: 3
+
+networks:
+  private_network:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.2.0.0/24
+
+services:
+  unbound:
+    image: mvance/unbound:latest
+    container_name: unbound
+    restart: unless-stopped
+    hostname: unbound
+    volumes:
+      - ~/.unbound:/opt/unbound/etc/unbound/
+    networks:
+      private_network:
+        ipv4_address: 10.2.0.200
+
+  wg-easy:
+    container_name: wg-easy
+    image: weejewel/wg-easy
+    volumes:
+      - ~/.wg-easy:/etc/wireguard
+    ports:
+      - 51820:51820/udp
+      - 51821:51821/tcp
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+      - net.ipv4.ip_forward=1
+    environment:
+      - WG_HOST=185.235.130.3
+      - PASSWORD=123
+    restart: unless-stopped
+    dns:
+      - 10.2.0.100 # Points to pihole
+      - 10.2.0.200 # Points to unbound
+    depends_on:
+      - pihole
+      - unbound
+    networks:
+      private_network:
+        ipv4_address: 10.2.0.3
+  
+  pihole:
+    depends_on:
+      - unbound
+    container_name: pihole
+    image: pihole/pihole:latest
+    restart: unless-stopped
+    hostname: pihole
+    dns:
+      - 127.0.0.1
+      - 10.2.0.200 # Points to unbound
+    environment:
+      TZ: Europe/Amsterdam
+      WEBPASSWORD: ''
+      ServerIP: 10.2.0.100 # Internal IP of pihole
+      DNS1: 10.2.0.200 # Unbound IP
+      DNS2: 10.2.0.200 # If we don't specify two, it will auto pick google.
+    volumes:
+      - ./etc-pihole/:/etc/pihole/
+      - ./etc-dnsmasq.d/:/etc/dnsmasq.d/
+    cap_add:
+      - NET_ADMIN
+    networks:
+      private_network:
+        ipv4_address: 10.2.0.100
