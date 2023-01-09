@@ -3,7 +3,7 @@ version: '3'
 services:
   wg-easy:
     container_name: wg-easy
-    image: weejewel/wg-easy
+    image: https://github.com/TZbooo/wg-easy.git
     volumes:
       - ~/.wg-easy:/etc/wireguard
     ports:
